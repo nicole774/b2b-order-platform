@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 
 const router = express.Router();
@@ -27,6 +28,31 @@ router.post('/register', async (req, res) => {
   });
 
   res.status(201).json(user);
+});
+
+// POST /api/auth/login — vérifie les identifiants et renvoie un JWT
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'email et password sont obligatoires' });
+  }
+
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  // Même message que l'email soit inconnu ou le mot de passe faux :
+  // on ne révèle pas quels emails ont un compte
+  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+    return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+  }
+
+  const token = jwt.sign(
+    { userId: user.id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN }
+  );
+
+  res.json({ token });
 });
 
 module.exports = router;
