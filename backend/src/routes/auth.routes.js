@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
-
+const { authenticate } = require('../middlewares/auth');
 const router = express.Router();
 
 // POST /api/auth/register — création d'un compte CLIENT
@@ -53,6 +53,15 @@ router.post('/login', async (req, res) => {
   );
 
   res.json({ token });
+});
+
+// GET /api/auth/me — renvoie l'utilisateur connecté
+router.get('/me', authenticate, async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { id: true, email: true, name: true, role: true },
+  });
+  res.json(user);
 });
 
 module.exports = router;
