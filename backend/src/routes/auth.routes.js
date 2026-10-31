@@ -2,16 +2,17 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
+const { logActivity } = require('../lib/logActivity');
 const { authenticate } = require('../middlewares/auth');
+const validate = require('../middlewares/validate');
+const { registerSchema, loginSchema } = require('../schemas/auth.schemas');
 const router = express.Router();
 
 // POST /api/auth/register — création d'un compte CLIENT
-router.post('/register', async (req, res) => {
+// validate(registerSchema) s'exécute AVANT le contrôleur : si les données sont
+// invalides, il répond 400 et le contrôleur ci-dessous ne s'exécute jamais.
+router.post('/register', validate(registerSchema), async (req, res) => {
   const { email, password, name } = req.body;
-
-  if (!email || !password || !name) {
-    return res.status(400).json({ error: 'email, password et name sont obligatoires' });
-  }
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -27,16 +28,14 @@ router.post('/register', async (req, res) => {
     select: { id: true, email: true, name: true, role: true, createdAt: true },
   });
 
+  await logActivity(prisma, user.id, 'REGISTER', 'user', user.id);
+
   res.status(201).json(user);
 });
 
 // POST /api/auth/login — vérifie les identifiants et renvoie un JWT
-router.post('/login', async (req, res) => {
+router.post('/login', validate(loginSchema), async (req, res) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: 'email et password sont obligatoires' });
-  }
 
   const user = await prisma.user.findUnique({ where: { email } });
 
@@ -51,6 +50,8 @@ router.post('/login', async (req, res) => {
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN }
   );
+
+  await logActivity(prisma, user.id, 'LOGIN', 'user', user.id);
 
   res.json({ token });
 });
