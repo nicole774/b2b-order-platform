@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth.routes');
+const productRoutes = require('./routes/products.routes');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
@@ -16,6 +17,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
 
 // Aucune route ne correspond → 404 en JSON
 app.use((req, res) => {
