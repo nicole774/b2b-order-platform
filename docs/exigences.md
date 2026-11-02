@@ -1,10 +1,8 @@
-# Document d'exigences — Plateforme de gestion de commandes B2B
+# Exigences - Plateforme de commandes B2B
 
 ## 1. Contexte et scénario
 Un distributeur B2B (Business-to-Business) vend des produits à des entreprises clientes.
-Aujourd'hui, les commandes passent par des emails et des appels, ce qui entraîne une perte de temps, des erreurs sur les stocks, des clients qui attendent en vain leur commande et, parfois, une commande reçue qui ne correspond pas à ce qui avait été demandé. L'administrateur n'a aucune visibilité et il n'existe pas d'historique des achats. C'est dans ce cadre que nous développons une plateforme web multi-rôles qui centralise : catalogue produits, panier, commandes, factures,
-suivi du stock et contrôles administrateur.
-
+Aujourd'hui, les commandes passent par des emails et des appels, ce qui entraîne une perte de temps, des erreurs sur les stocks, des clients qui attendent en vain leur commande et, parfois, une commande reçue qui ne correspond pas à ce qui avait été demandé. L'administrateur n'a aucune visibilité et il n'existe pas d'historique des achats. Je développe une application web qui regroupe au même endroit le catalogue, le panier, les commandes, les factures, le suivi du stock et les outils de l'administrateur.
 
 ## 2. Parties prenantes et rôles
 | Rôle | Description | Peut faire |
@@ -13,17 +11,17 @@ suivi du stock et contrôles administrateur.
 | **CLIENT** | Entreprise acheteuse (compte individuel) | Gérer son panier, passer des commandes, voir ses commandes et factures |
 | **ADMIN** | Gestionnaire du distributeur | Gérer les produits et le stock, voir toutes les commandes, changer leur statut, émettre des factures, consulter le journal d'audit |
 
-**Partie prenante principale** : le gestionnaire du distributeur (ADMIN), qui gagne en
-visibilité opérationnelle ; bénéficiaire secondaire : les clients, qui commandent plus
-vite et sans erreur.
+L'utilisateur principal est le gestionnaire du distributeur (ADMIN) : il voit enfin où en sont les commandes et le stock. Les clients y gagnent aussi, parce qu'ils commandent plus vite et sans erreur de saisie.
+
 ## 3. Problème métier et bénéfice attendu
-- **Problème** : commandes manuelles → erreurs de stock, commandes perdues, pas d'historique.
-- **Décision permise par l'outil** : l'admin voit en temps réel les commandes en attente,
+- Problème : les commandes sont gérées à la main, d'où des erreurs de stock, des commandes perdues et aucun historique.
+- Ce que l'outil permet de décider : l'admin voit en temps réel les commandes en attente,
   les niveaux de stock et peut prioriser les expéditions.
-- **Bénéfice mesurable** : une commande complète passe en moins de 2 minutes ; le stock
+- Bénéfice mesurable : une commande complète passe en moins de 2 minutes ; le stock
   est toujours exact ; chaque action est traçable dans l'historique.
-## 4. Périmètre (scope)
-**Dans le périmètre :**
+
+## 4. Périmètre
+Ce qui est inclus :
 - Authentification JWT avec 2 rôles (CLIENT, ADMIN)
 - Catalogue produits avec stock
 - Panier, commande, facture
@@ -32,11 +30,12 @@ vite et sans erreur.
 - Journal d'activité (historique)
 - API REST documentée, prête pour Docker
 
-**Hors périmètre (explicitement exclu) :**
+Ce qui n'est pas inclus :
 - Paiement en ligne réel (simulation uniquement)
 - Envoi d'emails (confirmation, etc.)
 - Application mobile, multi-devises, multi-langues
 - Gestion multi-sociétés avec plusieurs utilisateurs par compte client
+
 ## 5. Exigences fonctionnelles
 | # | Exigence | Priorité |
 |---|---|---|
@@ -44,7 +43,7 @@ vite et sans erreur.
 | Fonction2 | Rôles CLIENT/ADMIN, routes protégées par rôle | Haute |
 | Fonction3 | CRUD produits (ADMIN) ; consultation du catalogue (tous) | Haute |
 | Fonction4 | Panier par client : ajout, modification de quantité, suppression | Haute |
-| Fonction5 | Passer commande depuis le panier : crée la commande + ses lignes + la facture, décrémente le stock, vide le panier — le tout dans une transaction | Haute |
+| Fonction5 | Passer commande depuis le panier : crée la commande + ses lignes + la facture, décrémente le stock, vide le panier : dans une seule transaction | Haute |
 | Fonction6 | Refuser une commande si le stock est insuffisant (message clair) | Haute |
 | Fonction7 | Statuts de commande : PENDING → CONFIRMED → SHIPPED, ou CANCELLED (ADMIN) | Moyenne |
 | Fonction8 | Facture avec numéro unique, associée à la commande | Moyenne |
@@ -52,10 +51,10 @@ vite et sans erreur.
 | Fonction10 | Validation de toutes les entrées (prix > 0, quantité entière ≥ 1, email valide…) avec messages d'erreur clairs | Haute |
 ## 6. Exigences non fonctionnelles
 
-- **Sécurité** : mots de passe hashés bcrypt, JWT signé avec expiration, secrets hors du code (fichier `.env` exclu de Git).
-- **Intégrité des données** : clés étrangères, contraintes d'unicité, transactions Prisma pour commande + stock.
-- **Reproductibilité** : `docker-compose.yml` + README permettant de tout lancer en 3 commandes.
-- **Traçabilité** : historique Git propre avec des commits réguliers et nommés.
+- Sécurité : mots de passe hashés bcrypt, JWT signé avec expiration, secrets hors du code (fichier `.env` exclu de Git).
+- Intégrité des données : clés étrangères, contraintes d'unicité, transactions Prisma pour commande + stock.
+- Reproductibilité : `docker-compose.yml` + README permettant de tout lancer en 3 commandes.
+- Traçabilité : historique Git propre avec des commits réguliers et nommés.
 
 ## 7. Modèle de données (8 tables)
 
@@ -77,6 +76,7 @@ vite et sans erreur.
 |---|---|---|
 | POST | `/api/auth/register` | Créer un compte (rôle CLIENT automatique) |
 | POST | `/api/auth/login` | Retourne un JWT |
+| GET | `/api/auth/me` | Profil de l'utilisateur connecté (JWT requis) |
 
 ### Produits
 | Méthode | Route | Accès |
@@ -110,15 +110,19 @@ vite et sans erreur.
 | GET | `/api/admin/audit-logs` | ADMIN (filtre par utilisateur, date, action) |
 
 ## 9. Critères d'acceptation
-- Un visiteur peut créer un compte et se connecter ; il reçoit un rôle CLIENT.
-- Un CLIENT ne peut PAS accéder aux routes ADMIN (testé, exemple : 403 sur POST /api/products).
-- Le parcours complet fonctionne : ajouter 2 produits au panier → commander → stock décrémenté → facture générée → panier vidé.
-- Commander plus que le stock disponible échoue avec un message clair, et **rien n'est modifié** (transaction annulée).
-- Toute entrée invalide (prix négatif, quantité 0, email invalide) renvoie une erreur 400.
-- Toutes les actions ci-dessus apparaissent dans `activity_logs`.
-- Le mentor peut cloner le dépôt et lancer le projet en suivant uniquement le README.
+
+Vérifiés à la main avec curl les 31/10 et 01/11/2026 (détail dans `docs/cas-de-test.md`).
+
+- [x] Un visiteur peut créer un compte et se connecter ; il reçoit un rôle CLIENT. *(CT-01)*
+- [x] Un CLIENT ne peut pas accéder aux routes ADMIN (401 sans token, 403 avec token CLIENT sur POST /api/products). *(CT-02)*
+- [x] Le parcours complet fonctionne : ajouter des produits au panier → commander → stock décrémenté → facture générée → panier vidé. *(CT-03)*
+- [x] Commander plus que le stock disponible échoue avec un message clair, et rien n'est modifié (la transaction est annulée). *(CT-04)*
+- [x] Toute entrée invalide (prix négatif, quantité 0, email invalide) renvoie une erreur 400. *(CT-05)*
+- [x] Toutes les actions ci-dessus apparaissent dans `activity_logs`. *(CT-06)*
+- [ ] Le mentor peut cloner le dépôt et lancer le projet en suivant uniquement le README. *(pas encore : le README sera terminé avec le frontend et Docker)*
+
 ## 10. Métriques de succès
 1. Un client passe une commande complète (connexion → panier → commande) en moins de 2 minutes, mesuré lors des tests manuels.
-2. 100 % des routes protégées renvoient 401 sans token et 403 sans le bon rôle (vérifié par les tests automatisés).
+2. 100 % des routes protégées renvoient 401 sans token et 403 sans le bon rôle (à vérifier avec les tests automatisés).
 3. 100 % des produits dont le stock passe sous le seuil (par défaut 5 unités) apparaissent dans l'alerte de stock bas du tableau de bord admin ; le stock n'est jamais négatif.
 4. 100 % des actions significatives (inscription, connexion, CRUD produit, commande, changement de statut) sont enregistrées dans `activity_logs`.
