@@ -6,3 +6,14 @@ export function formatPrice(value) {
 export function formatDate(value) {
   return new Date(value).toLocaleDateString('fr-FR')
 }
+
+export function formatDateTime(value) {
+  return new Date(value).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+export const STATUS_LABELS = {
+  PENDING: 'En attente',
+  CONFIRMED: 'Confirmée',
+  SHIPPED: 'Expédiée',
+  CANCELLED: 'Annulée',
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { api } from '../api.js'
+import Toast from '../Toast.jsx'
 import { formatPrice } from '../format.js'
 
 function Cart() {
@@ -57,7 +58,7 @@ function Cart() {
     <>
       <h1>Mon panier</h1>
 
-      {error && <p className="error" role="alert">{error}</p>}
+      <Toast message={error} type="error" onClose={setError} />
 
       {order && (
         <div className="card success-card" role="status">

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { api } from '../api.js'
+import Toast from '../Toast.jsx'
+import Pagination from '../Pagination.jsx'
 import { useAuth } from '../AuthContext.jsx'
 import { formatPrice } from '../format.js'
 
@@ -19,16 +21,23 @@ function Catalogue() {
   const [query, setQuery] = useState('')
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [page, setPage] = useState(1)
+  const [pages, setPages] = useState(1)
 
   useEffect(() => {
-    api('/products?limit=50&search=' + encodeURIComponent(query))
-      .then((result) => setProducts(result.data))
+    const params = new URLSearchParams({ limit: 12, page, search: query })
+    api('/products?' + params)
+      .then((result) => {
+        setProducts(result.data)
+        setPages(result.meta.pages)
+      })
       .catch((err) => setError(err.message))
-  }, [query])
+  }, [query, page])
 
   function handleSearch(event) {
     event.preventDefault()
     setQuery(search)
+    setPage(1)
   }
 
   async function addToCart(product) {
@@ -62,8 +71,8 @@ function Catalogue() {
         </form>
       </div>
 
-      {error && <p className="error" role="alert">{error}</p>}
-      {message && <p className="success" role="status">{message}</p>}
+      <Toast message={error} type="error" onClose={setError} />
+      <Toast message={message} onClose={setMessage} />
 
       {products.length === 0 && !error && <p>Aucun produit trouvé.</p>}
 
@@ -89,6 +98,8 @@ function Catalogue() {
           </article>
         ))}
       </div>
+
+      <Pagination page={page} pages={pages} onChange={setPage} />
 
       {!user && (
         <p className="hint">
