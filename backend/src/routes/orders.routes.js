@@ -95,7 +95,7 @@ router.get('/', authenticate, async (req, res) => {
 
   const orders = await prisma.order.findMany({
     where,
-    include: { items: { include: { product: true } }, invoice: true },
+    include: { items: { include: { product: true } }, invoice: true, user: { select: { name: true, email: true } } },
     orderBy: { createdAt: 'desc' },
   });
 
@@ -145,7 +145,7 @@ router.patch('/:id/status', authenticate, requireRole('ADMIN'), validate(statusS
   const order = await prisma.order.update({
     where: { id },
     data: { status: req.body.status },
-    include: { items: { include: { product: true } }, invoice: true },
+    include: { items: { include: { product: true } }, invoice: true, user: { select: { name: true, email: true } } },
   });
 
   await logActivity(prisma, req.user.id, 'UPDATE_ORDER_STATUS', 'order', id, {
