@@ -4,6 +4,12 @@ Projet 1 de mon stage Full Stack chez Arrowstack.
 
 Un distributeur vend des fournitures à des entreprises. Avant, les commandes passaient par email et par téléphone, avec des erreurs de stock et aucun historique. Cette application permet aux clients de commander en ligne et à l'administrateur de gérer les produits, le stock, les commandes et les factures, avec un journal de toutes les actions.
 
+## Démo
+
+Vidéo des deux parcours (client puis admin) : [voir la démo sur Google Drive](https://drive.google.com/file/d/1OmyJmg-sysHN-1ZWmsnKRQ6FJ1LZxScJ/view?usp=sharing).
+
+La vidéo n'est pas dans le dépôt pour ne pas l'alourdir. Les captures d'écran sont dans `docs/preuves/`.
+
 ## Technologies
 
 - Backend : Node.js, Express 5, Prisma 6, PostgreSQL
@@ -61,7 +67,26 @@ Créés par le seed :
 
 ## Lancer le frontend
 
-À compléter.
+Le backend doit être démarré d'abord (le frontend lui envoie les requêtes).
+
+1. Installer les dépendances :
+   ```bash
+   cd frontend
+   npm install
+   ```
+2. Démarrer :
+   ```bash
+   npm run dev
+   ```
+
+L'interface tourne sur http://localhost:5173. Elle appelle l'API sur http://localhost:4000 par défaut ; cette adresse est modifiable avec la variable `VITE_API_URL` (voir `frontend/src/api.js`).
+
+Se connecter avec un des comptes de test ci-dessus.
+
+- Un compte CLIENT voit le catalogue (recherche par nom ou référence, 12 produits par page), son panier et ses commandes avec leur facture.
+- Un compte ADMIN voit la page d'administration en trois onglets : produits et stock (ajout dans une fenêtre, modification, suppression, alerte de stock bas à 5 unités ou moins), commandes (recherche, filtre par statut, changement de statut) et journal d'audit (filtre par email et par action).
+- Les listes longues sont découpées en pages de 20 lignes.
+- Sans connexion, on peut voir le catalogue mais pas commander.
 
 ## Documentation
 
@@ -75,12 +100,14 @@ Créés par le seed :
 Terminé :
 - base de données (8 tables, 5 migrations) ;
 - API : authentification, produits, panier, commandes, factures, journal d'audit ;
-- tests manuels CT-01 à CT-08, tous conformes.
+- tests manuels de l'API CT-01 à CT-08, tous conformes ;
+- frontend : connexion, catalogue, panier, mes commandes, page d'administration avec alerte de stock bas ;
+- parcours client et admin testés dans l'interface (CT-09 et CT-10) et filmés (voir Démo) ;
+- preuves d'écran dans `docs/preuves/`.
 
 Reste à faire :
-- tests automatisés (Jest + Supertest) ;
-- frontend ;
-- configuration Docker.
+- configuration Docker (Dockerfile backend et frontend + docker-compose) ;
+- tests automatisés (Jest + Supertest), si le temps le permet.
 
 ## Limites connues
 

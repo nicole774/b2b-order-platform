@@ -39,4 +39,31 @@
 - Relecture et mise à jour des documents (décisions D8 et D9 ajoutées, limites connues dans le README).
 - CT-08 exécuté et conforme : avec le token d'un 2e client (créé via l'inscription), la commande n°1 qui appartient à un autre renvoie bien « Commande introuvable » (404, voir D6). Les 8 cas de test passent.
 
-À faire ensuite : tests automatisés avec Jest et Supertest, frontend, Docker, README final.
+À faire ensuite : frontend, Docker, README final.
+
+## 02/11/2026
+- Dernière passe sur les documents après CT-08, puis commit et push.
+
+## 03/11/2026
+- Création du projet frontend avec Vite (React + react-router).
+- `api.js` : une seule fonction `api()` qui ajoute le header `Authorization: Bearer` à chaque requête et transforme les erreurs de l'API (y compris le détail champ par champ de zod) en messages lisibles.
+- `AuthContext` : le token est gardé dans le `localStorage` et l'utilisateur connecté est partagé entre les pages. Se déconnecter supprime le token.
+- `RequireRole` : un client qui tape l'adresse de la page admin est renvoyé ailleurs. Ce n'est que du confort : la vraie protection reste le backend, qui renvoie 403.
+- Page de connexion, catalogue avec recherche par nom et bouton « Ajouter au panier », page panier avec modification des quantités et « Passer la commande ».
+- Premier appel du frontend vers l'API bloqué par le navigateur (ports 5173 et 4000 différents). Réglé avec le middleware `cors` (D10).
+
+## 05/11/2026
+- Page « Mes commandes » : les commandes du client avec leur statut et leur facture.
+- Page administration en trois onglets : produits et stock, commandes (changement de statut), journal d'audit. Alerte de stock bas en haut de la page (5 unités ou moins), repliable pour ne pas prendre toute la place.
+- En testant la suppression d'un produit déjà commandé, j'ai eu « Erreur interne du serveur ». La base refusait bien la suppression, mais avec un code que Prisma ne traduit pas. J'ai ajouté une vérification avant la suppression, qui renvoie 409 avec un vrai message (D11).
+- En testant, je ne voyais pas les messages affichés en haut de la page quand j'étais en bas de la liste, et je recliquais plusieurs fois. Je les ai remplacés par des messages flottants en bas à droite (D13).
+- Le formulaire d'ajout de produit est passé dans une fenêtre. Astérisque rouge sur les champs obligatoires, description marquée « facultatif », bouton gris tant que le formulaire n'est pas valide. Petit souci : l'astérisque passait à la ligne sous le libellé, je l'ai mis dans le même `span`.
+- Recherche et pagination : produits (nom ou référence), commandes (numéro, client ou facture, filtre par statut) et journal (email, action). Côté backend : `?search=` sur la référence, `?maxStock=` pour l'alerte de stock bas, `?page=` et `?email=` pour le journal (D12).
+- Autre petit bug : « Aucun produit ne correspond » s'affichait une fraction de seconde avant le chargement de la liste. Le message n'apparaît plus que si une recherche est en cours.
+- Parcours client complet testé à l'écran : connexion, catalogue, panier, commande, facture visible dans « Mes commandes » (CT-09).
+
+## 06/11/2026
+- Captures d'écran des écrans client et admin dans `docs/preuves/`, liens ajoutés dans les cas de test (CT-01 à CT-10).
+- Vidéo de démonstration des deux parcours, client puis admin, enregistrée et mise sur Google Drive (lien dans le README). Je ne l'ai pas mise dans le dépôt pour ne pas l'alourdir.
+
+À faire ensuite : Docker (Dockerfile backend et frontend + docker-compose), puis les tests automatisés Jest/Supertest si le temps le permet, en commençant par le cas du panier laissé de côté dans CT-08.
