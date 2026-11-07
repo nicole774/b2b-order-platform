@@ -1,0 +1,49 @@
+services:
+  # 1. La base de données PostgreSQL
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: b2b
+      POSTGRES_PASSWORD: b2b_secret
+      POSTGRES_DB: b2b_orders
+    # Volume : les données survivent à un "docker compose down".
+    # Depuis l'image postgres 18, le montage recommandé est /var/lib/postgresql
+    # (et non plus /var/lib/postgresql/data comme dans les versions précédentes)
+    volumes:
+      - pgdata:/var/lib/postgresql
+    # Healthcheck : le backend n'attendra pas que la base soit prête à l'aveugle
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U b2b -d b2b_orders"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # 2. L'API REST
+  backend:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    environment:
+      # Ici l'hôte est "db" (le nom du service), pas localhost :
+      # dans le réseau Docker, les conteneurs se trouvent par leur nom de service
+      DATABASE_URL: postgresql://b2b:b2b_secret@db:5432/b2b_orders?schema=public
+      JWT_SECRET: secret-de-demo-a-changer-en-production
+      JWT_EXPIRES_IN: 1d
+    depends_on:
+      db:
+        condition: service_healthy
+    # Avant de démarrer l'API : appliquer les migrations puis charger le seed.
+    # migrate deploy est la commande prévue pour la production (elle n'essaie
+    # pas de "dev" comme prisma migrate dev).
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm start"
+
+  # 3. L'interface React servie par nginx
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

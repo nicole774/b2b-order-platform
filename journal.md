@@ -67,3 +67,13 @@
 - Vidéo de démonstration des deux parcours, client puis admin, enregistrée et mise sur Google Drive (lien dans le README). Je ne l'ai pas mise dans le dépôt pour ne pas l'alourdir.
 
 À faire ensuite : Docker (Dockerfile backend et frontend + docker-compose), puis les tests automatisés Jest/Supertest si le temps le permet, en commençant par le cas du panier laissé de côté dans CT-08.
+
+## 07/11/2026
+- Dockerfiles du backend et du frontend, puis `docker-compose.yml` avec 3 services : PostgreSQL, API et interface. Au démarrage, le backend applique les migrations (`migrate deploy`) et lance le seed tout seul (D14).
+- Premier lancement : le conteneur de la base s'arrêtait tout de suite. Dans ses logs, j'ai vu que l'image `postgres:18` attend le volume sur `/var/lib/postgresql` et plus sur `/var/lib/postgresql/data` comme avant. J'ai corrigé le compose, puis supprimé l'ancien volume avec `docker compose down -v`.
+- Deuxième erreur, côté backend cette fois : `@prisma/client did not initialize yet`. Dans le Dockerfile, `npm ci` tourne avant la copie du schéma, donc le client Prisma n'était jamais généré. J'ai ajouté `RUN npx prisma generate` après `COPY . .`, et installé openssl, qui manque dans l'image slim.
+- Ensuite les 3 conteneurs démarrent. Parcours client et admin refaits dans le navigateur sur la base Docker, qui est neuve et remplie par le seed (CT-11).
+- En relisant le README avant de rendre, j'ai rechargé la page « Mes commandes » dans la version Docker et j'ai eu une erreur 404 de nginx. En local, Vite gère ça tout seul, mais nginx cherche un vrai fichier `/commandes`, qui n'existe pas. J'ai ajouté `frontend/nginx.conf` pour qu'il renvoie toujours `index.html`. Après reconstruction, `/`, `/commandes`, `/panier` et `/admin` répondent bien.
+- Dernière relecture des documents : README (section Docker, limites connues), décision D14, critère d'acceptation « lancer le projet avec le README » coché.
+
+Projet 1 terminé. Ce qui manque : les tests automatisés Jest/Supertest, que je n'ai pas eu le temps de faire.

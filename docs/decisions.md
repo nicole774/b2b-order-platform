@@ -74,3 +74,15 @@ Au début, les messages de succès ou d'erreur s'affichaient en haut de la page.
 
 Pour la même raison, le formulaire d'ajout de produit est dans une fenêtre (balise `<dialog>`) qui s'ouvre au-dessus de la liste. Les champs obligatoires ont un astérisque rouge, la description est marquée « facultatif », et le bouton reste gris tant que les champs ne sont pas tous remplis correctement. Les erreurs renvoyées par l'API s'affichent dans la fenêtre, sinon elles seraient cachées derrière.
 
+
+## D14 - Organisation de Docker (07/11/2026)
+
+Trois services dans `docker-compose.yml` : `db` (PostgreSQL 18), `backend` (l'API) et `frontend` (l'interface).
+
+- Backend sur `node:22-slim` et pas `alpine` : bcrypt fournit des binaires déjà compilés pour slim. Avec alpine, il aurait fallu les compiler pendant la construction de l'image. J'ai dû ajouter openssl, dont le moteur Prisma a besoin et qui n'est pas dans slim.
+- Frontend construit en deux étapes : Node sert seulement à faire `npm run build`, puis nginx sert le dossier `dist/`. L'image finale ne contient ni Node ni `node_modules`.
+- Au démarrage du backend : `prisma migrate deploy`, puis le seed, puis l'API. J'utilise `migrate deploy` et pas `migrate dev`, parce qu'il applique seulement les migrations existantes sans en créer. Le seed utilise `upsert`, donc le relancer à chaque démarrage ne crée pas de doublons.
+- Le backend attend que la base soit vraiment prête (`healthcheck` avec `pg_isready`). Sans ça, il pourrait démarrer pendant que PostgreSQL s'initialise encore, et la migration échouerait.
+- nginx renvoie `index.html` pour toutes les adresses (`frontend/nginx.conf`). Sans ça, recharger la page `/commandes` donnait une erreur 404, parce que ces pages n'existent que dans React, pas comme fichiers.
+
+Limite : le mot de passe de la base et `JWT_SECRET` sont écrits en clair dans le compose. Pour une démo en local, c'est plus simple pour le mentor. Pour une vraie mise en ligne, je les mettrais dans un fichier `.env` non commité, lu par le compose.

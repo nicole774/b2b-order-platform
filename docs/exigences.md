@@ -111,7 +111,7 @@ Ce qui n'est pas inclus :
 
 ## 9. Critères d'acceptation
 
-Vérifiés à la main avec curl les 31/10 et 01/11/2026 (détail dans `docs/cas-de-test.md`).
+Vérifiés à la main avec curl les 31/10 et 01/11/2026, puis dans l'interface et avec Docker du 05 au 07/11/2026 (détail dans `docs/cas-de-test.md`).
 
 - [x] Un visiteur peut créer un compte et se connecter ; il reçoit un rôle CLIENT. *(CT-01)*
 - [x] Un CLIENT ne peut pas accéder aux routes ADMIN (401 sans token, 403 avec token CLIENT sur POST /api/products). *(CT-02)*
@@ -119,10 +119,10 @@ Vérifiés à la main avec curl les 31/10 et 01/11/2026 (détail dans `docs/cas-
 - [x] Commander plus que le stock disponible échoue avec un message clair, et rien n'est modifié (la transaction est annulée). *(CT-04)*
 - [x] Toute entrée invalide (prix négatif, quantité 0, email invalide) renvoie une erreur 400. *(CT-05)*
 - [x] Toutes les actions ci-dessus apparaissent dans `activity_logs`. *(CT-06)*
-- [ ] Le mentor peut cloner le dépôt et lancer le projet en suivant uniquement le README. *(pas encore : le README sera terminé avec le frontend et Docker)*
+- [x] Le mentor peut cloner le dépôt et lancer le projet en suivant uniquement le README. *(CT-11 : `docker compose up -d --build` sur une base vide)*
 
 ## 10. Métriques de succès
-1. Un client passe une commande complète (connexion → panier → commande) en moins de 2 minutes, mesuré lors des tests manuels.
+1. Un client passe une commande complète (connexion → panier → commande) en moins de 2 minutes, mesuré lors des tests manuels. Résultat : environ 1 min 25 s sur la vidéo de démo (CT-09).
 2. 100 % des routes protégées renvoient 401 sans token et 403 sans le bon rôle (à vérifier avec les tests automatisés).
 3. 100 % des produits dont le stock passe sous le seuil (par défaut 5 unités) apparaissent dans l'alerte de stock bas du tableau de bord admin ; le stock n'est jamais négatif.
 4. 100 % des actions significatives (inscription, connexion, CRUD produit, commande, changement de statut) sont enregistrées dans `activity_logs`.
