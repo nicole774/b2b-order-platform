@@ -117,6 +117,7 @@ Les données sont gardées dans un volume. Pour tout effacer et repartir de zér
 ## Documentation
 
 - [Exigences](docs/exigences.md) : rôles, fonctionnalités, modèle de données, liste des routes, critères d'acceptation
+- [Couverture des exigences](docs/couverture-exigences.md) : chaque exigence du cahier des charges et la preuve associée
 - [Décisions techniques](docs/decisions.md)
 - [Cas de test](docs/cas-de-test.md) et leurs résultats
 - [Journal de travail](journal.md)
